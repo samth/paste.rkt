@@ -1,0 +1,143 @@
+#lang racket/base
+
+(require web-server/servlet web-server/servlet-env web-server/dispatch (planet jaymccarthy/mongodb)
+         racket/dict racket/sequence openssl/sha1 racket/sandbox racket/match
+         racket/runtime-path)
+
+(define mongo (create-mongo))
+(define db (mongo-db mongo "rktbin"))
+
+(current-mongo-db db)
+
+(define-mongo-struct paste "pastes"
+  ([hash #:immutable]
+   [content #:immutable]   
+   [result #:immutable]
+   [date #:immutable]
+   #; ;; do this later
+   [parent #:immutable]))
+
+(define hdr
+  `(header ((role "banner"))
+           (a ((href "/"))
+              (h1 "paste.rkt"))))
+
+(define footer
+  `(footer (p "Made by Sam Tobin-Hochstadt, styling stolen from cljbin")))
+
+
+(define (main-page req)
+  (displayln req)
+  (displayln (url->string (request-uri req)))
+  (response/xexpr
+   `(html (head (title "Submit a paste") ,@styles)
+          (body
+           ,hdr
+           (section ([id "paste"])
+                    (form ((action "/new") (method "post"))
+                          (div ([class "code"])
+                               (textarea ((id "code") (name "code") (placeholder "Racket program here"))))
+                          (ul ([class "actions"])
+                              (li (button (i ([class "icon-edit"]))
+                                          "Paste and Run")))))
+           ,footer))))
+
+(define (format-result v)
+  (match v
+    [(vector s #f #f) `(pre ,s)]    
+    [(vector s o e) `(div (pre ,s)
+                           ,@(if o
+                                 `((h3 "Standard Out")
+                                   (pre ,o))
+                                 null)
+                           ,@(if e
+                                 `((h3 "Standard Error")
+                                   (pre ,e))
+                                 null))]))
+
+(define-runtime-path static "./")
+
+(define styles
+  `((link ((type "text/css")
+           (rel "stylesheet")
+           (href "/assets/style.css")))
+    (link ((type "text/css")
+           (rel "stylesheet")
+           (href "/assets/media_queries.css")))
+    (link ((type "text/css")
+           (rel "stylesheet")
+           (href "/assets/normalize.css")))
+    (link ((type "text/css")
+           (rel "stylesheet")
+           (href "/assets/font-awesome.css")))
+    (link ((type "text/css")
+           (rel "stylesheet")
+           (href "http://fonts.googleapis.com/css?family=Droid+Sans+Mono")))))
+
+(define (show-paste req id)
+  (define q (sequence->list (mongo-dict-query "pastes" (hash 'hash id))))
+  (response/xexpr
+   (cond [(null? q)
+          `(html (head (title "paste.rkt") ,@styles)
+                 ,hdr ,footer)]
+         [else (define p (car q))
+               (printf "pr: ~a\n" (paste-result p))
+               `(html (head (title "paste.rkt")
+                            ,@styles)
+                      (body 
+                       ,hdr
+                       (section ([id "paste"])
+                                (pre ,(paste-content p))
+                                (hline)
+                                (pre ,(format-result (paste-result p)))
+                                (p ([class "meta"]) "Pasted recently."))
+                       ,footer))])))
+
+(define (run-code str)
+  (define ev
+    (parameterize ([sandbox-output 'string]
+                   [sandbox-error-output 'string]
+                   [sandbox-propagate-exceptions #f]
+                   [sandbox-eval-limits (list 10 50)]
+                   [sandbox-path-permissions '([exists "/"])])
+       (call-with-limits 10 #f
+                         (lambda () (make-evaluator '(begin (require racket)))))))
+  (define res (ev str))
+  (define out (get-output ev))
+  (define err (get-error-output ev))
+  (kill-evaluator ev)
+  (list (if (void? res) "" (format "~v" res))
+        (and (not (equal? out "")) out)
+        (and (not (equal? err "")) err)))
+
+(define (new-paste req)
+  (define content (dict-ref (request-bindings req) 'code))
+  (cond [content
+         (define hash (sha1 (open-input-string 
+                             (string-append (number->string (current-inexact-milliseconds))
+                                            content))))
+         ;; put it in the db
+         (define p (make-paste #:hash hash #:content content
+                               #:result (run-code content)
+                               #:date (current-seconds)))
+                  
+         ;; evaluation goes here
+         ;; redirect to the permanent page
+         (define new-url (->url show-paste hash))
+         (redirect-to new-url)]
+        [else (response/xexpr
+               '(html (head (title "Failed") ,@styles)
+                      (body (h1 "Failed"))))]))
+
+(define-values (dispatch ->url)
+  (dispatch-rules
+   [("") #:method "get" main-page]
+   [("new") #:method "post" new-paste]
+   [() #:method "post" new-paste]
+   [("paste" (string-arg)) show-paste]))
+
+(serve/servlet dispatch
+               #:extra-files-paths (list static)
+               #:servlet-regexp #rx""
+               #:servlet-path "")
+

@@ -1,17 +1,6 @@
-CLJBIN
-======
+# RktBin
 
-A Clojure pastebin with code evaluation.
+A Racket pastebin with code evaluation.
 
-Requirements
-------------
-
-- Leiningen
-- A running MongoDB instance.
-
-Running
--------
-
-    $ lein deps
-    $ lein run
+Derived from @gf3's excellent CLJBIN.
 

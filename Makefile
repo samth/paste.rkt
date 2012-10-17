@@ -10,7 +10,7 @@ css:
 	  $(CSSDIR)/shThemeTomorrow.css \
 	  $(CSSDIR)/shClojureExtra.css \
 	  > $(CSSDIR)/compiled/all.css
-	cleancss -o $(CSSDIR)/compiled/all.css $(CSSDIR)/compiled/all.css
+	node_modules/.bin/cleancss -o $(CSSDIR)/compiled/all.css $(CSSDIR)/compiled/all.css
 
 js:
 	cat \
