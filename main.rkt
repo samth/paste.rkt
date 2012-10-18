@@ -14,47 +14,7 @@
    [content #:immutable]   
    [result #:immutable]
    [date #:immutable]
-   #; ;; do this later
    [parent #:immutable]))
-
-(define hdr
-  `(header ((role "banner"))
-           (a ((href "/"))
-              (h1 "paste.rkt"))))
-
-(define footer
-  `(footer (p "Made by Sam Tobin-Hochstadt, styling stolen from cljbin")))
-
-
-(define (main-page req)
-  (response/xexpr
-   `(html (head (title "Submit a paste") ,@styles)
-          (body
-           ,hdr
-           (section ([id "paste"])
-                    (form ((action "/new") (method "post"))
-                          (div ([class "code"])
-                               (textarea ((id "code") (name "code") (placeholder "Racket program here"))))
-                          (ul ([class "actions"])
-                              (li (button (i ([class "icon-edit"]))
-                                          "Paste and Run")))))
-           ,footer))))
-
-(define (format-result v)
-  (match v
-    [(vector s _ _)
-     (for/list ([l (regexp-split "\n" s)])
-       `(li (pre ,l)))]
-    ;; FIXME -- reenable later
-    [(vector s o e) `(div (pre ,s)
-                           ,@(if o
-                                 `((h3 "Standard Out")
-                                   (pre ,o))
-                                 null)
-                           ,@(if e
-                                 `((h3 "Standard Error")
-                                   (pre ,e))
-                                 null))]))
 
 (define-runtime-path static "./")
 
@@ -76,6 +36,67 @@
            (rel "stylesheet")
            (href "http://fonts.googleapis.com/css?family=Droid+Sans+Mono")))))
 
+
+(define hdr
+  `(header ((role "banner"))
+           (a ((href "/"))
+              (h1 "paste.rkt"))))
+
+(define footer
+  `(footer (p "Made by Sam Tobin-Hochstadt, styling stolen from cljbin")))
+
+(define default-placeholder "Racket code here")
+
+(define (main-page req [parent-id #f])
+  (define parent 
+    (cond [parent-id
+           (define q (sequence->list (mongo-dict-query "pastes" (hash 'hash parent-id))))
+           (and (pair? q) (car q))]
+          [else #f]))
+  (response/xexpr
+   `(html (head (title "paste.rkt") ,@styles)
+          (body
+           ,hdr
+           (section ([id "paste"])
+                    (form ((action "/new") (method "post"))
+                          ,@(if parent 
+                                `((input ([id "fork-of"] [type "hidden"] [value ,parent-id] [name "fork-of"])))
+                                `())
+                          (div ([class "code"])
+                               (textarea ((id "code")
+                                          (name "code")
+                                          ,@(if parent
+                                                `()
+                                                `((placeholder ,default-placeholder))))
+                                         ,(if parent (paste-content parent) ""))
+                               ,@(if parent
+                                     `((div
+                                        (div ([class "syntaxhighligher"])
+                                             (pre ,(paste-content parent))))
+                                       (ul ([class "output"])
+                                           ,@(format-result (paste-result parent))))
+                                     `()))
+                          (ul ([class "actions"])
+                              (li (button (i ([class "icon-edit"]))
+                                          "Paste and Run")))))
+           ,footer))))
+
+(define (format-result v)
+  (match v
+    [(vector s _ _)
+     (for/list ([l (regexp-split "\n" s)])
+       `(li (pre ,l)))]
+    ;; FIXME -- reenable later
+    [(vector s o e) `(div (pre ,s)
+                           ,@(if o
+                                 `((h3 "Standard Out")
+                                   (pre ,o))
+                                 null)
+                           ,@(if e
+                                 `((h3 "Standard Error")
+                                   (pre ,e))
+                                 null))]))
+
 (define (show-paste req id)
   (define q (sequence->list (mongo-dict-query "pastes" (hash 'hash id))))
   (response/xexpr
@@ -83,18 +104,30 @@
           `(html (head (title "paste.rkt") ,@styles)
                  ,hdr ,footer)]
          [else (define p (car q))
-               (printf "pr: ~a\n" (paste-result p))
+               (define parent (paste-parent p))
+               (define result (paste-result p))
+               (define content (paste-content p))
                `(html (head (title "paste.rkt")
                             ,@styles)
                       (body 
                        ,hdr
                        (section ([id "paste"])
-                                (div ([class "code"])
-                                     (div ([class "syntaxhighlighter"])
-                                          (pre ,(paste-content p))))
-                                (ul ([class "output"])
-                                    ,@(format-result (paste-result p)))
-                                (p ([class "meta"]) "Pasted recently."))
+                                (form ((action ,(string-append "/fork/" id)) (method "get"))
+                                      (div ([class "code"])
+                                           (div ([class "syntaxhighlighter"])
+                                                (pre ,content)))
+                                      (ul ([class "output"])
+                                          ,@(format-result result))
+                                      ,(if parent
+                                           `(div ([id "fork-of"])
+                                                 "Fork of "
+                                                 (a ([href ,(->url show-paste parent)])
+                                                    ,parent))
+                                           `(div))
+                                      (p ([class "meta"]) "Pasted recently.")
+                                      (ul ([class "actions"])
+                                          (li (button (i ([class "icon-random"]))
+                                                      "Fork")))))
                        ,footer))])))
 
 (define (run-code str)
@@ -115,7 +148,12 @@
         (and (not (equal? err "")) err)))
 
 (define (new-paste req)
-  (define content (dict-ref (request-bindings req) 'code))
+  (define content (dict-ref (request-bindings req) 'code #f))
+  (define parent-id (dict-ref (request-bindings req) 'fork-of #f))
+  (define parent (and parent-id content
+                      (not (null? (sequence->list
+                                   (mongo-dict-query "pastes" (hash 'hash parent-id)))))
+                      parent-id))
   (cond [content
          (define hash (sha1 (open-input-string 
                              (string-append (number->string (current-inexact-milliseconds))
@@ -123,7 +161,8 @@
          ;; put it in the db
          (define p (make-paste #:hash hash #:content content
                                #:result (run-code content)
-                               #:date (current-seconds)))
+                               #:date (current-seconds)
+                               #:parent parent))
                   
          ;; evaluation goes here
          ;; redirect to the permanent page
@@ -138,7 +177,8 @@
    [("") #:method "get" main-page]
    [("new") #:method "post" new-paste]
    [() #:method "post" new-paste]
-   [("paste" (string-arg)) show-paste]))
+   [("paste" (string-arg)) show-paste]
+   [("fork" (string-arg)) main-page]))
 
 (serve/servlet dispatch
                #:listen-ip #f
