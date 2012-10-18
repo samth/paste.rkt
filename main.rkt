@@ -70,9 +70,7 @@
                                                 `((placeholder ,default-placeholder))))
                                          ,(if parent (paste-content parent) ""))
                                ,@(if parent
-                                     `((div
-                                        (div ([class "syntaxhighligher"])
-                                             (pre ,(paste-content parent))))
+                                     `((div ,(format-code (paste-content parent)))
                                        (ul ([class "output"])
                                            ,@(format-result (paste-result parent))))
                                      `()))
@@ -107,15 +105,15 @@
                (define parent (paste-parent p))
                (define result (paste-result p))
                (define content (paste-content p))
+               (define when (paste-date p))
                `(html (head (title "paste.rkt")
                             ,@styles)
                       (body 
                        ,hdr
                        (section ([id "paste"])
                                 (form ((action ,(string-append "/fork/" id)) (method "get"))
-                                      (div ([class "code"])
-                                           (div ([class "syntaxhighlighter"])
-                                                (pre ,content)))
+                                      (div ([class "code"]) ,(format-code content))
+                                           
                                       (ul ([class "output"])
                                           ,@(format-result result))
                                       ,(if parent
@@ -124,12 +122,29 @@
                                                  (a ([href ,(->url show-paste parent)])
                                                     ,parent))
                                            `(div))
-                                      (p ([class "meta"]) "Pasted recently.")
+                                      (p ([class "meta"]) 
+                                         ,(let* ([now (current-seconds)]
+                                                 [days (quotient (- now when) (* 24 60 60))])
+                                            (format "Pasted ~a day~a ago." days (if (= 1 days) "" "s"))))
                                       (ul ([class "actions"])
                                           (li (button (i ([class "icon-random"]))
                                                       "Fork")))))
                        ,footer))])))
 
+(define (format-code c)
+  (define lines
+    (for/list ([l (regexp-split "\n" c)])
+      `(div ([class "line"]) (code ,l))))
+  `(div
+    ([class "syntaxhighlighter"])
+    (table 
+     ([cellspacing "0"] [cellpadding "0"] [border "0"])
+     (tbody
+      (tr
+       (td ([class "code"])
+           (div ([class "container"])
+                ,@lines)))))))
+  
 (define (run-code str)
   (define ev
     (parameterize ([sandbox-output 'string]
