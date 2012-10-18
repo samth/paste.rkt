@@ -65,6 +65,8 @@
                           (div ([class "code"])
                                (textarea ((id "code")
                                           (name "code")
+                                          [spellcheck "false"]
+                                          [autofocus "yes"]
                                           ,@(if parent
                                                 `()
                                                 `((placeholder ,default-placeholder))))
@@ -75,7 +77,7 @@
                                            ,@(format-result (paste-result parent))))
                                      `()))
                           (ul ([class "actions"])
-                              (li (button (i ([class "icon-edit"]))
+                              (li (button (i ([class "icon-play"]))
                                           "Paste and Run")))))
            ,footer))))
 
