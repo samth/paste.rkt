@@ -27,8 +27,6 @@
 
 
 (define (main-page req)
-  (displayln req)
-  (displayln (url->string (request-uri req)))
   (response/xexpr
    `(html (head (title "Submit a paste") ,@styles)
           (body
@@ -44,7 +42,10 @@
 
 (define (format-result v)
   (match v
-    [(vector s #f #f) `(pre ,s)]    
+    [(vector s _ _)
+     (for/list ([l (regexp-split "\n" s)])
+       `(li (pre ,l)))]
+    ;; FIXME -- reenable later
     [(vector s o e) `(div (pre ,s)
                            ,@(if o
                                  `((h3 "Standard Out")
@@ -58,7 +59,8 @@
 (define-runtime-path static "./")
 
 (define styles
-  `((link ((type "text/css")
+  `(
+    (link ((type "text/css")
            (rel "stylesheet")
            (href "/assets/style.css")))
     (link ((type "text/css")
@@ -87,9 +89,11 @@
                       (body 
                        ,hdr
                        (section ([id "paste"])
-                                (pre ,(paste-content p))
-                                (hline)
-                                (pre ,(format-result (paste-result p)))
+                                (div ([class "code"])
+                                     (div ([class "syntaxhighlighter"])
+                                          (pre ,(paste-content p))))
+                                (ul ([class "output"])
+                                    ,@(format-result (paste-result p)))
                                 (p ([class "meta"]) "Pasted recently."))
                        ,footer))])))
 
@@ -137,6 +141,7 @@
    [("paste" (string-arg)) show-paste]))
 
 (serve/servlet dispatch
+               #:listen-ip #f
                #:extra-files-paths (list static)
                #:servlet-regexp #rx""
                #:servlet-path "")
