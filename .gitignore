@@ -8,3 +8,4 @@
 /.lein-deps-sum
 *~
 node_modules/
+compiled/
