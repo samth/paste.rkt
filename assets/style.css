@@ -217,6 +217,15 @@ p.meta {
   padding-bottom: 0;
   color: #C8C8C8;
 }
+
+p.boxname  { font-size: 30pt; display: none; }
+
+.labeled { position: relative; }
+
+.labeled:hover > p.boxname { display: inline-block; }
+
+.stderr { color: red; }
+
 #fork-of {
   padding: 18.2px;
   border-top: 1px solid #E9E9E9;
@@ -224,6 +233,33 @@ p.meta {
 #fork-of p {
     margin: 0;
 }
+
+footer span { 
+    display: none;
+    -moz-transition: all 1s ease;
+    -ms-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    -webkit-transition: all 1s ease;
+    transition: all 1s ease;
+}
+footer:hover span { 
+    display: inline;
+ 
+}
+
+footer span.default { 
+    display: inline; 
+    -moz-transition: all 1s ease;
+    -ms-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    -webkit-transition: all 1s ease;
+    transition: all 1s ease;
+}
+
+footer:hover span.default { 
+    display: none;  
+}
+
 footer {
     text-align: right;
     margin-top: 50px;
@@ -231,6 +267,7 @@ footer {
     color: hsla(0.0,0%,0%,0.25098039215686274);
     font-size: 10pt;
 }
+
 .muted {
   color: #E8E8E8;
 }

@@ -2,7 +2,7 @@
 
 (require web-server/servlet web-server/servlet-env web-server/dispatch (planet jaymccarthy/mongodb)
          racket/dict racket/sequence openssl/sha1 racket/sandbox racket/match
-         racket/runtime-path)
+         racket/runtime-path racket/list)
 
 (define mongo (create-mongo))
 (define db (mongo-db mongo "rktbin"))
@@ -36,7 +36,8 @@
            (a ((href "/")) (h1 "paste.rkt"))))
 
 (define footer
-  `(footer (p "Made with " (a ([href "http://racket-lang.org"]) "Racket") " by "
+  `(footer (span ([class "default"]) "Credits")
+           (span "Made with " (a ([href "http://racket-lang.org"]) "Racket") " by "
               (a ([href "http://www.ccs.neu.edu/home/samth"]) "Sam Tobin-Hochstadt")
               ". Styling stolen from "
               (a ([href "https://github.com/gf3/CLJBIN"]) "cljbin")
@@ -72,7 +73,9 @@
                                                 `((placeholder ,default-placeholder))))
                                          ,(if parent (paste-content parent) ""))
                                ,@(if parent
-                                     `((div ,(format-code (paste-content parent)))
+                                     `((div ([class "labeled"])
+                                            (p ([class "meta boxname"]) "definitions")
+                                            ,(format-code (paste-content parent)))
                                        ,@(format-result (paste-result parent)))
                                      `()))
                           (ul ([class "actions"])
@@ -81,24 +84,23 @@
            ,footer))))
 
 (define (format-result v)
+  (define (out str? cls [drop? #t])
+    (cond [str?
+           (define l (regexp-split "\n" str?))
+           (define l* (if (and drop? (equal? "" (last l)))
+                          (drop-right l 1)
+                          l))
+           `(ul ([class ,(string-append "labeled output " cls)])
+                (p ([class "meta boxname"]) ,cls)
+                ,@(for/list ([e l*])
+                    `(li (pre ,e))))]
+          [else #f]))
   (match v
     [(vector s o e)
-     (filter 
-      values
-      `((ul 
-         ([class "output"])
-         ,@(for/list ([l (regexp-split "\n" s)]) 
-             `(li (pre ,l))))
-        ,(and o 
-              `(ul 
-                ([class "output stdout"])
-                ,@(for/list ([l (regexp-split "\n" o)]) 
-                    `(li (pre ,l)))))
-        ,(and e
-              `(ul 
-                ([class "output stderr"])
-                ,@(for/list ([l (regexp-split "\n" e)]) 
-                    `(li (pre ,l)))))))]))
+     (filter values
+             (list (out s "results" #f)
+                   (out o "stdout")
+                   (out e "stderr")))]))
 
 (define (show-paste req id)
   (define q (sequence->list (mongo-dict-query "pastes" (hash 'hash id))))
@@ -114,7 +116,9 @@
                        ,hdr
                        (section ([id "paste"])
                                 (form ((action ,(string-append "/fork/" id)) (method "get"))
-                                      (div ([class "code"]) ,(format-code content))
+                                      (div ([class "code labeled"])
+                                           (p ([class "meta boxname"]) "definitions")
+                                           ,(format-code content))
                                       ,@(format-result result)
                                       ,(if parent
                                            `(div ([id "fork-of"])
