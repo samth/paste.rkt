@@ -18,32 +18,32 @@
 
 (define-runtime-path static "./")
 
-(define styles
-  `(
-    (link ((type "text/css")
-           (rel "stylesheet")
-           (href "/assets/style.css")))
-    (link ((type "text/css")
-           (rel "stylesheet")
-           (href "/assets/media_queries.css")))
-    (link ((type "text/css")
-           (rel "stylesheet")
-           (href "/assets/normalize.css")))
-    (link ((type "text/css")
-           (rel "stylesheet")
-           (href "/assets/font-awesome.css")))
-    (link ((type "text/css")
-           (rel "stylesheet")
-           (href "http://fonts.googleapis.com/css?family=Droid+Sans+Mono")))))
+(define (CSS u)
+  `(link ([type "text/css"]
+          (rel "stylesheet")
+          (href ,u))))
 
+(define styles
+  (map CSS '("/assets/normalize.css"
+             "/assets/media_queries.css"
+             "/assets/style.css"
+             "/assets/font-awesome.css"
+             "http://fonts.googleapis.com/css?family=PT+Sans"
+             "http://fonts.googleapis.com/css?family=Droid+Sans+Mono")))
 
 (define hdr
   `(header ((role "banner"))
-           (a ((href "/"))
-              (h1 "paste.rkt"))))
+           (a ((href "/")) (h1 "paste.rkt"))))
 
 (define footer
-  `(footer (p "Made by Sam Tobin-Hochstadt, styling stolen from cljbin")))
+  `(footer (p "Made with " (a ([href "http://racket-lang.org"]) "Racket") " by "
+              (a ([href "http://www.ccs.neu.edu/home/samth"]) "Sam Tobin-Hochstadt")
+              ". Styling stolen from "
+              (a ([href "https://github.com/gf3/CLJBIN"]) "cljbin")
+              ". Source at "
+              (a ([href "https://github.com/samth/rktbin"]) "GitHub")
+              ". Fonts from " (a ([href "http://fortawesome.github.com/Font-Awesome"]) "FontAwesome")
+              ".")))
 
 (define default-placeholder "Racket code here")
 
@@ -100,22 +100,18 @@
 (define (show-paste req id)
   (define q (sequence->list (mongo-dict-query "pastes" (hash 'hash id))))
   (response/xexpr
-   (cond [(null? q)
-          `(html (head (title "paste.rkt") ,@styles)
-                 ,hdr ,footer)]
+   (cond [(null? q) fail-page]
          [else (define p (car q))
                (define parent (paste-parent p))
                (define result (paste-result p))
                (define content (paste-content p))
                (define when (paste-date p))
-               `(html (head (title "paste.rkt")
-                            ,@styles)
+               `(html (head (title "paste.rkt") ,@styles)
                       (body 
                        ,hdr
                        (section ([id "paste"])
                                 (form ((action ,(string-append "/fork/" id)) (method "get"))
                                       (div ([class "code"]) ,(format-code content))
-                                           
                                       (ul ([class "output"])
                                           ,@(format-result result))
                                       ,(if parent
@@ -136,7 +132,7 @@
 (define (format-code c)
   (define lines
     (for/list ([l (regexp-split "\n" c)])
-      `(div ([class "line"]) (code ,l))))
+      `(div ([class "line"]) (pre ([class "pline"]) ,l))))
   `(div
     ([class "syntaxhighlighter"])
     (table 
@@ -185,15 +181,16 @@
          ;; redirect to the permanent page
          (define new-url (->url show-paste hash))
          (redirect-to new-url)]
-        [else (response/xexpr
-               '(html (head (title "Failed") ,@styles)
-                      (body (h1 "Failed"))))]))
+        [else (response/xexpr fail-page)]))
+
+(define fail-page
+  '(html (head (title "paste.rkt") ,@styles)
+         (body (h1 "Not Found"))))
 
 (define-values (dispatch ->url)
   (dispatch-rules
    [("") #:method "get" main-page]
    [("new") #:method "post" new-paste]
-   [() #:method "post" new-paste]
    [("paste" (string-arg)) show-paste]
    [("fork" (string-arg)) main-page]))
 
@@ -202,4 +199,3 @@
                #:extra-files-paths (list static)
                #:servlet-regexp #rx""
                #:servlet-path "")
-
