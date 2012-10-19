@@ -200,4 +200,5 @@
                #:listen-ip #f
                #:extra-files-paths (list static)
                #:servlet-regexp #rx""
-               #:servlet-path "")
+               #:servlet-path ""
+               #:log-file "~/paste_rkt.log")
