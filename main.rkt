@@ -195,6 +195,8 @@
    [("fork" (string-arg)) main-page]))
 
 (serve/servlet dispatch
+               #:port 80
+               #:launch-browser? #f
                #:listen-ip #f
                #:extra-files-paths (list static)
                #:servlet-regexp #rx""
