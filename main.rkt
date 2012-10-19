@@ -73,8 +73,7 @@
                                          ,(if parent (paste-content parent) ""))
                                ,@(if parent
                                      `((div ,(format-code (paste-content parent)))
-                                       (ul ([class "output"])
-                                           ,@(format-result (paste-result parent))))
+                                       ,@(format-result (paste-result parent)))
                                      `()))
                           (ul ([class "actions"])
                               (li (button (i ([class "icon-play"]))
@@ -83,19 +82,23 @@
 
 (define (format-result v)
   (match v
-    [(vector s _ _)
-     (for/list ([l (regexp-split "\n" s)])
-       `(li (pre ,l)))]
-    ;; FIXME -- reenable later
-    [(vector s o e) `(div (pre ,s)
-                           ,@(if o
-                                 `((h3 "Standard Out")
-                                   (pre ,o))
-                                 null)
-                           ,@(if e
-                                 `((h3 "Standard Error")
-                                   (pre ,e))
-                                 null))]))
+    [(vector s o e)
+     (filter 
+      values
+      `((ul 
+         ([class "output"])
+         ,@(for/list ([l (regexp-split "\n" s)]) 
+             `(li (pre ,l))))
+        ,(and o 
+              `(ul 
+                ([class "output stdout"])
+                ,@(for/list ([l (regexp-split "\n" o)]) 
+                    `(li (pre ,l)))))
+        ,(and e
+              `(ul 
+                ([class "output stderr"])
+                ,@(for/list ([l (regexp-split "\n" e)]) 
+                    `(li (pre ,l)))))))]))
 
 (define (show-paste req id)
   (define q (sequence->list (mongo-dict-query "pastes" (hash 'hash id))))
@@ -112,8 +115,7 @@
                        (section ([id "paste"])
                                 (form ((action ,(string-append "/fork/" id)) (method "get"))
                                       (div ([class "code"]) ,(format-code content))
-                                      (ul ([class "output"])
-                                          ,@(format-result result))
+                                      ,@(format-result result)
                                       ,(if parent
                                            `(div ([id "fork-of"])
                                                  "Fork of "
