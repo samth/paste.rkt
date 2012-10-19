@@ -201,4 +201,4 @@
                #:extra-files-paths (list static)
                #:servlet-regexp #rx""
                #:servlet-path ""
-               #:log-file "~/paste_rkt.log")
+               #:log-file "paste_rkt.log")
