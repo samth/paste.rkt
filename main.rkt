@@ -196,11 +196,19 @@
    [("paste" (string-arg)) show-paste]
    [("fork" (string-arg)) main-page]))
 
-(serve/servlet dispatch
-               #:port 80
-               #:launch-browser? #f
-               #:listen-ip #f
-               #:extra-files-paths (list static)
-               #:servlet-regexp #rx""
-               #:servlet-path ""
-               #:log-file "paste_rkt.log")
+(define (go [p 80])
+  (serve/servlet dispatch
+                 #:port p
+                 #:launch-browser? #f
+                 #:listen-ip #f
+                 #:extra-files-paths (list static)
+                 #:servlet-regexp #rx""
+                 #:servlet-path ""
+                 #:log-file "paste_rkt.log"))
+
+(module+ main
+  (require racket/cmdline)
+  (command-line #:program "paste.rkt"
+                #:args (p)
+                (go (string->number p))))
+
