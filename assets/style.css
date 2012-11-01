@@ -152,10 +152,15 @@ pre.pline {
    font-size: 14px;
 }
 
+.output li pre {
+  margin-top: 0pt;
+  margin-bottom: 0pt;
+}
+
 ul.output {
   margin: 0;
   padding: 18.2px;
-  padding-top: 0;
+  padding-top: 18.2px;
   border-top: 1px solid #E9E9E9;
   list-style-type: none;
 }
@@ -218,6 +223,8 @@ p.meta {
   color: #C8C8C8;
 }
 
+.labeled:hover > p.meta { display: none; }
+
 p.boxname  { font-size: 30pt; display: none; }
 
 .labeled { position: relative; }
@@ -234,33 +241,17 @@ p.boxname  { font-size: 30pt; display: none; }
     margin: 0;
 }
 
-footer span { 
+footer span#creditsfull { 
     display: none;
-    -moz-transition: all 1s ease;
-    -ms-transition: all 1s ease;
-    -o-transition: all 1s ease;
-    -webkit-transition: all 1s ease;
-    transition: all 1s ease;
-}
-footer:hover span { 
-    display: inline;
- 
-}
-
-footer span.default { 
-    display: inline; 
-    -moz-transition: all 1s ease;
-    -ms-transition: all 1s ease;
-    -o-transition: all 1s ease;
-    -webkit-transition: all 1s ease;
-    transition: all 1s ease;
-}
-
-footer:hover span.default { 
-    display: none;  
 }
 
 footer {
+    -moz-transition: all 1s ease;
+    -ms-transition: all 1s ease;
+    -o-transition: all 1s ease;
+    -webkit-transition: all 1s ease;
+
+    transition: all 1s ease;
     text-align: right;
     margin-top: 50px;
     margin-bottom: 50px;

@@ -24,27 +24,31 @@
           (href ,u))))
 
 (define styles
-  (map CSS '("/assets/normalize.css"
-             "/assets/media_queries.css"
-             "/assets/style.css"
-             "/assets/font-awesome.css"
-             "http://fonts.googleapis.com/css?family=PT+Sans"
-             "http://fonts.googleapis.com/css?family=Droid+Sans+Mono")))
-
+  (list*
+   '(script ([src "/assets/src.js"]))
+   (map CSS '("/assets/normalize.css"
+              "/assets/media_queries.css"
+              "/assets/style.css"
+              "/assets/font-awesome.css"
+              "http://fonts.googleapis.com/css?family=PT+Sans"
+              "http://fonts.googleapis.com/css?family=Droid+Sans+Mono"))))
+  
 (define hdr
   `(header ((role "banner"))
            (a ((href "/")) (h1 "paste.rkt"))))
 
 (define footer
-  `(footer (span ([class "default"]) "Credits")
-           (span "Made with " (a ([href "http://racket-lang.org"]) "Racket") " by "
-              (a ([href "http://www.ccs.neu.edu/home/samth"]) "Sam Tobin-Hochstadt")
-              ". Styling stolen from "
-              (a ([href "https://github.com/gf3/CLJBIN"]) "cljbin")
-              ". Source at "
-              (a ([href "https://github.com/samth/rktbin"]) "GitHub")
-              ". Fonts from " (a ([href "http://fortawesome.github.com/Font-Awesome"]) "FontAwesome")
-              ".")))
+  `(footer (span ([id "credits"]) "Credits")
+           (span 
+            ([id "creditsfull"])
+            "Made with " (a ([href "http://racket-lang.org"]) "Racket") " by "
+            (a ([href "http://www.ccs.neu.edu/home/samth"]) "Sam Tobin-Hochstadt")
+            ". Styling stolen from "
+            (a ([href "https://github.com/gf3/CLJBIN"]) "cljbin")
+            ". Source at "
+            (a ([href "https://github.com/samth/rktbin"]) "GitHub")
+            ". Fonts from " (a ([href "http://fortawesome.github.com/Font-Awesome"]) "FontAwesome")
+            ".")))
 
 (define default-placeholder "Racket code here")
 
