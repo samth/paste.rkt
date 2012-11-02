@@ -1,7 +1,19 @@
 p.meta { position: static; padding-bottom: 18.5px; }
 
 #paste                      { margin-left: 0;      margin-right: 0; }
-header[role=banner], footer { margin-left: 18.2px; margin-right: 18.2px; }
+footer { margin-left: 18.2px; margin-right: 18.2px; }
+
+header[role=banner] {
+    position: relative;
+    margin-left: 18.2px;
+    margin-top: 50px;
+    font-size: 20pt;
+    -o-transform: none;
+    -moz-transform: none;
+    -ms-transform: none;
+    -webkit-transform: none;
+    transform: none;
+}
 
 /* 640px */
 @media screen and (min-width: 45.7em) {
@@ -9,8 +21,8 @@ header[role=banner], footer { margin-left: 18.2px; margin-right: 18.2px; }
 
 /* 720px */
 @media screen and (min-width: 51.4em) {
-  #paste                      { margin-left: 50px;   margin-right: 50px;   }
-  header[role=banner], footer { margin-left: 68.2px; margin-right: 68.2px; }
+  #paste, header[role=banner]                      { margin-left: 50px;   margin-right: 50px;   }
+  footer { margin-left: 68.2px; margin-right: 68.2px; }
 }
 
 /* 888px */
@@ -21,37 +33,71 @@ header[role=banner], footer { margin-left: 18.2px; margin-right: 18.2px; }
 @media screen and (min-width: 70em) {
   p.meta { position: absolute; padding-bottom: 0; }
 
-  #paste                      { margin-left: 100px;   margin-right: 100px;   }
-  header[role=banner], footer { margin-left: 118.2px; margin-right: 118.2px; }
+header[role=banner] {
+    position: fixed;
+    margin-left: -60px;
+    margin-top: 100px;
+    -moz-transform: rotate(270deg);
+    -o-transform: rotate(270deg);
+    -ms-transform: rotate(270deg);
+    -webkit-transform: rotate(270deg);
+    transform: rotate(270deg);
+}
+  #paste { margin-left: 100px;   margin-right: 100px;   }
+  footer { margin-left: 118.2px; margin-right: 118.2px; }
+
 }
 
 /* 1190px */
 @media screen and (min-width: 85em) {
-  #paste                      { margin-left: 150px;   margin-right: 150px;   }
-  header[role=banner], footer { margin-left: 168.2px; margin-right: 168.2px; }
+    #paste                      { margin-left: 150px;   margin-right: 150px;   }
+  footer { margin-left: 168.2px; margin-right: 168.2px; }
+
+header[role=banner] {
+    position: fixed;
+    margin-left: -25px;
+    margin-top: 100px;
+}
+
 }
 
 /* 1386px */
 @media screen and (min-width: 99em) {
   #paste                      { margin-left: 200px;   margin-right: 200px;   }
-  header[role=banner], footer { margin-left: 218.2px; margin-right: 218.2px; }
+  footer { margin-left: 218.2px; margin-right: 218.2px; }
+
+header[role=banner] {
+    margin-left: 0px;
+}
 }
 
 /* 1680px */
 @media screen and (min-width: 120em) {
   #paste                      { margin-left: 250px;   margin-right: 250px;   }
-  header[role=banner], footer { margin-left: 268.2px; margin-right: 268.2px; }
+  footer { margin-left: 268.2px; margin-right: 268.2px; }
+
+header[role=banner] {
+    margin-left: 50px;
+}
+
+
 }
 
 /* 1876px */
 @media screen and (min-width: 134em) {
   #paste                      { margin-left: 350px;   margin-right: 350px;   }
-  header[role=banner], footer { margin-left: 368.2px; margin-right: 368.2px; }
+  footer { margin-left: 368.2px; margin-right: 368.2px; }
+header[role=banner] {
+    margin-left: 150px;
+}
 }
 
 /* 2086px */
 @media screen and (min-width: 149em) {
   #paste                      { margin-left: 550px;   margin-right: 550px;   }
-  header[role=banner], footer { margin-left: 568.2px; margin-right: 568.2px; }
+  footer { margin-left: 568.2px; margin-right: 568.2px; }
+header[role=banner] {
+    margin-left: 300px;
+}
 }
 

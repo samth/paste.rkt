@@ -27,8 +27,8 @@
   (list*
    '(script ([src "/assets/src.js"]))
    (map CSS '("/assets/normalize.css"
-              "/assets/media_queries.css"
               "/assets/style.css"
+              "/assets/media_queries.css"
               "/assets/font-awesome.css"
               "http://fonts.googleapis.com/css?family=PT+Sans"
               "http://fonts.googleapis.com/css?family=Droid+Sans+Mono"))))
