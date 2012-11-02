@@ -47,7 +47,7 @@
             ". Styling stolen from "
             (a ([href "https://github.com/gf3/CLJBIN"]) "cljbin")
             ". Source at "
-            (a ([href "https://github.com/samth/rktbin"]) "GitHub")
+            (a ([href "https://github.com/samth/paste.rkt"]) "GitHub")
             ". Fonts from " (a ([href "http://fortawesome.github.com/Font-Awesome"]) "FontAwesome")
             ".")))
 
