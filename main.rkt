@@ -17,6 +17,7 @@
    [parent #:immutable]))
 
 (define-runtime-path static "./")
+(define-runtime-path favicon "./favicon.ico")
 
 (define (CSS u)
   `(link ([type "text/css"]
@@ -209,7 +210,7 @@
                  #:port p
                  #:launch-browser? #f
                  #:listen-ip #f
-                 #:extra-files-paths (list static)
+                 #:extra-files-paths (list static favicon)
                  #:servlet-regexp #rx""
                  #:servlet-path ""
                  #:log-file "paste_rkt.log"))
