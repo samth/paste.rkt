@@ -1,8 +1,9 @@
 #lang racket/base
 
-(require web-server/servlet web-server/servlet-env web-server/dispatch (planet jaymccarthy/mongodb)
+(require web-server/servlet web-server/servlet-env web-server/dispatch 
          racket/dict racket/sequence openssl/sha1 racket/sandbox racket/match
-         racket/runtime-path racket/list)
+         racket/runtime-path racket/list
+         db/mongodb)
 
 (define mongo (create-mongo))
 (define db (mongo-db mongo "rktbin"))
