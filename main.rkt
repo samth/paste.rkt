@@ -44,7 +44,7 @@
            (span 
             ([id "creditsfull"])
             "Made with " (a ([href "http://racket-lang.org"]) "Racket") " by "
-            (a ([href "http://www.ccs.neu.edu/home/samth"]) "Sam Tobin-Hochstadt")
+            (a ([href "http://samth.github.io/"]) "Sam Tobin-Hochstadt")
             ". Styling stolen from "
             (a ([href "https://github.com/gf3/CLJBIN"]) "cljbin")
             ". Source at "
